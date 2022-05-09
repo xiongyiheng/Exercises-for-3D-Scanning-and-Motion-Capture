@@ -48,21 +48,65 @@ bool WriteMesh(Vertex* vertices, unsigned int width, unsigned int height, const 
 	// TODO: save vertices
 	outFile << "# list of vertices" << std::endl;
 	outFile << "# X Y Z R G B A" << std::endl;
-	for(int i = 0;i < nVertices; i++){
+	for(int i = 0; i < nVertices; i++){
+		int R = (int)(vertices[i].color(0));
+		int G = (int)(vertices[i].color(1));
+		int B = (int)(vertices[i].color(2));
+		int A = (int)(vertices[i].color(3));
 		if (vertices[i].position(0) == MINF){
-			outFile << "0.0 0.0 0.0 " << vertices[i].color(0) 
-			<< " " << vertices[i].color(0) << " " << vertices[i].color(1) 
-			<< " " << vertices[i].color(2) << " " << vertices[i].color(3) << std::endl;
+			outFile << "0.0 0.0 0.0 " << R << " " << G 
+			<< " " << B << " " << A << std::endl;
 		} else {
 			outFile << vertices[i].position(0) << " " << vertices[i].position(1) 
-			<< " " << vertices[i].position(2) << " " << vertices[i].color(0) << " " << vertices[i].color(1) 
-			<< " " << vertices[i].color(2) << " " << vertices[i].color(3) << std::endl;
+			<< " " << vertices[i].position(2) << " " << R << " " << G 
+			<< " " << B << " " << A << std::endl;
 		}
 	}
 
 	// TODO: save valid faces
-	std::cout << "# list of faces" << std::endl;
-	std::cout << "# nVerticesPerFace idx0 idx1 idx2 ..." << std::endl;
+	outFile << "# list of faces" << std::endl;
+	outFile << "# nVerticesPerFace idx0 idx1 idx2 ..." << std::endl;
+	for(int i = 0; i < height; i++){
+		for(int j = 0; j < width; j++){
+			if (vertices[i*width+j].position(0) != MINF){
+				Vector4f X1 = vertices[i*width+j].position;
+				Vector4f X2 = vertices[i*width+j+width].position;
+				if (j == 0){ // head
+					Vector4f X3 = vertices[i*width+j+1].position;
+					float d_12 = (X1 - X2).norm();
+					float d_13 = (X1 - X3).norm();
+					float d_23 = (X2 - X3).norm();
+					if (d_12 <= edgeThreshold && d_13 <= edgeThreshold && d_23 <= edgeThreshold){
+						outFile << "3 " << i*width+j << " " << i*width+j+width << " " << i*width+j+1 << std::endl;
+					}
+				} else if (j == width-1){ // tail
+					Vector4f X3 = vertices[i*width+j+width-1].position;
+					float d_12 = (X1 - X2).norm();
+					float d_13 = (X1 - X3).norm();
+					float d_23 = (X2 - X3).norm();
+					if (d_12 <= edgeThreshold && d_13 <= edgeThreshold && d_23 <= edgeThreshold){
+						outFile << "3 " << i*width+j+width-1 << " " << i*width+j+width << " " << i*width+j << std::endl;
+					}
+				} else { // middle
+					Vector4f X3 = vertices[i*width+j+width-1].position;
+					float d_12 = (X1 - X2).norm();
+					float d_13 = (X1 - X3).norm();
+					float d_23 = (X2 - X3).norm();
+					if (d_12 <= edgeThreshold && d_13 <= edgeThreshold && d_23 <= edgeThreshold){
+						outFile << "3 " << i*width+j+width-1 << " " << i*width+j+width << " " << i*width+j << std::endl;
+					}
+
+					X3 = vertices[i*width+j+1].position;
+					d_12 = (X1 - X2).norm();
+					d_13 = (X1 - X3).norm();
+					d_23 = (X2 - X3).norm();
+					if (d_12 <= edgeThreshold && d_13 <= edgeThreshold && d_23 <= edgeThreshold){
+						outFile << "3 " << i*width+j << " " << i*width+j+width << " " << i*width+j+1 << std::endl;
+					}
+				}
+			}
+		}
+	}
 
 
 	// close file
@@ -145,12 +189,11 @@ int main()
 
 				// add color
 				// shape of colorMap = 4* m_colorImageWidth*m_colorImageHeight
-				unsigned char R = j * colorMap[i*sensor.GetDepthImageWidth()+j*4];
-				unsigned char G = j * colorMap[i*sensor.GetDepthImageWidth()+j*4+1];
-				unsigned char B = j * colorMap[i*sensor.GetDepthImageWidth()+j*4+2];
-				unsigned char A = j * colorMap[i*sensor.GetDepthImageWidth()+j*4+3];
+				unsigned char R = colorMap[i*sensor.GetDepthImageWidth()+j*4];
+				unsigned char G = colorMap[i*sensor.GetDepthImageWidth()+j*4+1];
+				unsigned char B = colorMap[i*sensor.GetDepthImageWidth()+j*4+2];
+				unsigned char A = colorMap[i*sensor.GetDepthImageWidth()+j*4+3];
 				vertices[i*sensor.GetDepthImageWidth()+j].color = Vector4uc(R,G,B,A);
-
 				}
 			}
 		}
