@@ -31,7 +31,7 @@ bool WriteMesh(Vertex* vertices, unsigned int width, unsigned int height, const 
 	unsigned int nVertices = width * height;
 
 	// TODO: Determine number of valid faces
-	unsigned nFaces = 0;
+	unsigned nFaces = 0; // (width - 1) * (height -1) * 2
 
 
 	// Write off file
