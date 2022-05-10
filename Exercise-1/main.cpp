@@ -189,10 +189,10 @@ int main()
 
 				// add color
 				// shape of colorMap = 4* m_colorImageWidth*m_colorImageHeight
-				unsigned char R = colorMap[i*sensor.GetDepthImageWidth()+j*4];
-				unsigned char G = colorMap[i*sensor.GetDepthImageWidth()+j*4+1];
-				unsigned char B = colorMap[i*sensor.GetDepthImageWidth()+j*4+2];
-				unsigned char A = colorMap[i*sensor.GetDepthImageWidth()+j*4+3];
+				unsigned char R = colorMap[(i*sensor.GetDepthImageWidth()+j)*4];
+				unsigned char G = colorMap[(i*sensor.GetDepthImageWidth()+j)*4+1];
+				unsigned char B = colorMap[(i*sensor.GetDepthImageWidth()+j)*4+2];
+				unsigned char A = colorMap[(i*sensor.GetDepthImageWidth()+j)*4+3];
 				vertices[i*sensor.GetDepthImageWidth()+j].color = Vector4uc(R,G,B,A);
 				}
 			}
