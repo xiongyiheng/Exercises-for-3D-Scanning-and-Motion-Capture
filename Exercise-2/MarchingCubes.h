@@ -340,8 +340,15 @@ Vector3d VertexInterp(double isolevel, const Vector3d& p1, const Vector3d& p2, d
 	//  /
 	// x
 	// f(p1) = valp1
+	double denominator = abs(valp2 - valp1);
+	double unit_x = (p2(0) - p1(0)) / denominator;
+	double unit_y = (p2(1) - p1(1)) / denominator;
+	double unit_z = (p2(2) - p1(2)) / denominator;
 
-	return (p1+p2)/2;
+	double newx = p1(0) + (isolevel - valp1) * unit_x;
+	double newy = p1(1) + (isolevel - valp1) * unit_y;
+	double newz = p1(2) + (isolevel - valp1) * unit_z;
+	return Vector3d(newx, newy, newz);
 }
 
 /*

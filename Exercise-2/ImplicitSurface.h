@@ -6,6 +6,8 @@
 #include "Eigen.h"
 #include "SimpleMesh.h"
 
+#include<cmath>
+
 class ImplicitSurface
 {
 public:
@@ -23,7 +25,7 @@ public:
 	double Eval(const Eigen::Vector3d& _x)
 	{
 		// TODO: implement the implicit sphere formula using the member variables m_center and m_radius
-		return 0.0;
+		return pow((_x(0) - m_center(0)), 2) + pow((_x(1) - m_center(1)), 2) + pow((_x(2) - m_center(2)), 2) - pow(m_radius, 2);
 	}
 
 private:
@@ -42,7 +44,9 @@ public:
 	double Eval(const Eigen::Vector3d& _x)
 	{
 		// TODO: implement the implicit torus formula using the  variables m_center, m_radius (radius of the ring) and the radius m_a (small radius)
-		return 0.0;
+		float ringTerm = pow(pow((_x(0) - m_center(0)), 2) + pow((_x(1) - m_center(1)), 2) + pow((_x(2) - m_center(2)), 2) + pow(m_radius, 2) - pow(m_a, 2), 2);
+		float smallTerm = 4 * pow(m_radius, 2) * (pow(_x(0)- m_center(0),2) + pow(_x(1)- m_center(1),2));
+		return ringTerm - smallTerm;
 	}
 
 private:
