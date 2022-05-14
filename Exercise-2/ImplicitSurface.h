@@ -74,7 +74,7 @@ public:
 		Eigen::Vector3f n = m_pointcloud.GetNormals()[idx];
 
 		// TODO: implement the evaluation using Hoppe's method (see lecture slides)
-		return 0.0;
+		return n.dot(x - p);
 	}
 
 private:
@@ -213,7 +213,6 @@ private:
 
 	//! the system matrix. Unfortunately, float-precision is not enough, so we have to use double here
 	MatrixXd m_systemMatrix;
-
 	//! store the result of the linear system here. Unfortunately, float-precision is not enough, so we have to use double here
 	VectorXd m_coefficents;
 };
@@ -273,8 +272,17 @@ public:
 		// the centers of the RBFs are the first m_numCenters sample points (use m_funcSamp.m_pos[i] to access them)
 		// hint: Eigen provides a norm() function to compute the l2-norm of a vector (e.g. see macro phi(i,j))
 		double result = 0.0;
-
-
+		int pointIndex = 0;
+		for(int i = 0; i < m_coefficents.size(); i++){
+			if (i < m_numCenters){
+				result += m_coefficents[i] * pow((_x - m_funcSamp.m_pos[pointIndex]).norm(), 3);
+				pointIndex++;
+			} else if (i == (m_coefficents.size() - 1)){
+				result += m_coefficents[i];
+			} else if (i == m_coefficents.size() - 4) {
+				result += m_coefficents[i] * _x(0) + m_coefficents[i+1] * _x(1) + m_coefficents[i+2] * _x(2);
+			}
+		}
 		return result;
 	}
 
@@ -300,8 +308,23 @@ private:
 		// you can access matrix elements using for example A(i,j) for the i-th row and j-th column
 		// similar you access the elements of the vector b, e.g. b(i) for the i-th element
 
-
-
+		// std::vector<Vector3d> m_pos;
+		// std::vector<double> m_val; m_pointcloud.GetPoints()
+		for (int i = 0; i < 2 * m_numCenters; i++){
+			b[i] = m_funcSamp.m_val[i];
+			for (int j = 0; j < m_numCenters + 4; j++){
+				if (j == m_numCenters + 3){
+					A(i,j) = 1.0;
+				} else if (j >= 0 && j <= (m_numCenters - 1)) { // to calculate phi
+					Vector3d originalPoint = Vector3d(m_pointcloud.GetPoints()[j](0), m_pointcloud.GetPoints()[j](1), m_pointcloud.GetPoints()[j](2));
+					A(i,j) = pow((m_funcSamp.m_pos[i] - originalPoint).norm(), 3);
+				} else if (j == m_numCenters) { // insert point
+					A(i,j) = m_funcSamp.m_pos[i](0);
+					A(i,j+1) = m_funcSamp.m_pos[i](1);
+					A(i,j+2) = m_funcSamp.m_pos[i](2);
+				}
+			}
+		}
 
 		// build the system matrix and the right hand side of the normal equation
 		m_systemMatrix = A.transpose() * A;
