@@ -8,9 +8,24 @@
 // TODO: Implement the cost function (check gaussian.cpp for reference)
 struct RegistrationCostFunction
 {
+	RegistrationCostFunction(const Point2D& point1_, const Point2D& point2_, const Weight& weight_)
+		: point1(point1_), point2(point2_), weight(weight_)
+	{
+	}
 
+	template<typename T>
+	bool operator()(const T* const angle, const T* const tx, const T* const ty, T* residual) const
+	{
+		// TODO: Implement the cost function
+		residual[0] = weight.w * (pow(cos(angle[0]) * point1.x - sin(angle[0]) * point1.y + tx[0] - point2.x, 2) + pow(sin(angle[0]) * point1.x + cos(angle[0]) * point1.y + ty[0] - point2.y, 2));
+		return true;
+	}
+
+	private:
+	const Point2D point1;
+	const Point2D point2;
+	const Weight weight;
 };
-
 
 int main(int argc, char** argv)
 {
@@ -37,7 +52,14 @@ int main(int argc, char** argv)
 	ceres::Problem problem;
 
 	// TODO: For each weighted correspondence create one residual block (check gaussian.cpp for reference)
-
+	for(int i  = 0; i < points1.size(); i++){
+		problem.AddResidualBlock(
+			new ceres::AutoDiffCostFunction<RegistrationCostFunction, 1, 1, 1, 1>(
+				new RegistrationCostFunction(points1[i], points2[i], weights[i])
+			),
+			nullptr, &angle, &tx, &ty
+		);
+	}
 	ceres::Solver::Options options;
 	options.max_num_iterations = 25;
 	options.linear_solver_type = ceres::DENSE_QR;
