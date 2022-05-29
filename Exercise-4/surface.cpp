@@ -8,7 +8,23 @@
 // TODO: Implement the cost function (check gaussian.cpp for reference)
 struct SurfaceCostFunction
 {
+	SurfaceCostFunction(const Point3D& point_)
+		: point(point_)
+	{
+	}
 
+	template<typename T>
+	bool operator()(const T* const a, const T* const b, const T* const c, T* residual) const
+	{
+		double x = point.x;
+		double y = point.y;
+		double z = point.z;
+		residual[0] = z - ((x * x / a[0] / c[0]) - (y * y / b[0] / c[0]));
+		return true;
+	}
+
+private:
+	const Point3D point;
 };
 
 
@@ -31,6 +47,15 @@ int main(int argc, char** argv)
 	ceres::Problem problem;
 
 	// TODO: For each data point create one residual block (check gaussian.cpp for reference)
+	for (auto& point : points)
+	{
+		problem.AddResidualBlock(
+			new ceres::AutoDiffCostFunction<SurfaceCostFunction, 1, 1, 1, 1>(
+				new SurfaceCostFunction(point)
+			),
+			nullptr, &a, &b, &c
+		);
+	}
 
 	ceres::Solver::Options options;
 	options.max_num_iterations = 100;
